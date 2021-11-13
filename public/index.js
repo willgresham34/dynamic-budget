@@ -6,6 +6,25 @@ const indexedDB = window.indexedDB;
 function saveRecord(failed, read) {
   const req = indexedDB.open("transactions", 1);
   let db;
+
+  req.onupgradeneeded = ({ target }) => {
+    const db = target.result;
+    db.createObjectStore("pendingTransactions", { autoIncrement: true });
+  };
+
+  req.onsuccess = (e) => {
+    db = req.result;
+    let transaction = db.transaction("pendingTransactions", "readwrite");
+    let sb = transaction.objectStore("pendingTransactions");
+
+    if (!read) {
+      sb.put(failed);
+      transaction.oncomplete = () => {
+        db.close();
+      };
+      return;
+    }
+  };
 }
 
 fetch("/api/transaction")
