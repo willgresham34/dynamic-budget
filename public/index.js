@@ -24,6 +24,30 @@ function saveRecord(failed, read) {
       };
       return;
     }
+
+    const all = sb.getAll();
+
+    all.onsuccess = () => {
+      db.close();
+      for (let i = 0; i < all.result.length; i++) {
+        let results = [];
+        results.push({
+          name: all.result[i].name,
+          value: all.result[i].value,
+          date: all.result[i].date,
+        });
+      }
+      fetch("/api/transaction/bulk", {
+        method: "POST",
+        headers: {
+          Accept: "application/json, text/plain, */*",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(results),
+      }).then((res) => {
+        return res.json();
+      });
+    };
   };
 }
 
