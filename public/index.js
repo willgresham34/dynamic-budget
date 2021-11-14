@@ -48,8 +48,15 @@ function saveRecord(failed, read) {
         return res.json();
       });
     };
+    let req = indexedDB.deleteDatabase("transactions");
+    req.onsuccess = function () {
+      console.log("Successfuly deleted the database");
+    };
   };
 }
+window.addEventListener("online", () => {
+  saveRecord(null, true);
+});
 
 fetch("/api/transaction")
   .then((response) => {
