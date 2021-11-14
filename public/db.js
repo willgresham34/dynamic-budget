@@ -8,22 +8,25 @@ req.onupgradeneeded = ({ target }) => {
   db.createObjectStore("pendingTransactions", { autoIncrement: true });
 };
 
-req.onsuccess = (e) => {
-  db = req.result;
+req.onsuccess = ({ target }) => {
+  db = target.result;
 
+  if (navigator.onLine) {
+    reviewData();
+  }
+};
+
+function saveData(data) {
   let transaction = db.transaction("pendingTransactions", "readwrite");
-
   let sb = transaction.objectStore("pendingTransactions");
 
-  const all = sb.getAll();
+  sb.add(data);
+}
 
-  if (!read) {
-    sb.put(failed);
-    transaction.oncomplete = () => {
-      db.close();
-    };
-    return;
-  }
+function reviewData() {
+  let transaction = db.transaction("pendingTransactions", "readwrite");
+  let sb = transaction.objectStore("pendingTransactions");
+  const all = sb.getAll();
 
   all.onsuccess = () => {
     db.close();
@@ -42,15 +45,21 @@ req.onsuccess = (e) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify(results),
-    }).then((res) => {
-      return res.json();
-    });
+    })
+      .then((res) => {
+        return res.json();
+      })
+      .then(() => {
+        let transaction = db.transaction("pendingTransactions", "readwrite");
+        let sb = transaction.objectStore("pendingTransactions");
+        sb.clear();
+      });
   };
   let req = indexedDB.deleteDatabase("transactions");
   req.onsuccess = function () {
     console.log("Successfuly deleted the database");
   };
-};
+}
 
 window.addEventListener("online", () => {
   saveRecord(null, true);
