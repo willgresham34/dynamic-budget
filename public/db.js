@@ -17,47 +17,39 @@ req.onsuccess = ({ target }) => {
 };
 
 function saveData(data) {
-  let transaction = db.transaction("pendingTransactions", "readwrite");
-  let sb = transaction.objectStore("pendingTransactions");
+  const transaction = db.transaction("pendingTransactions", "readwrite");
+  const sb = transaction.objectStore("pendingTransactions");
 
   sb.add(data);
 }
 
 function reviewData() {
-  let transaction = db.transaction("pendingTransactions", "readwrite");
-  let sb = transaction.objectStore("pendingTransactions");
+  const transaction = db.transaction("pendingTransactions", "readwrite");
+  const sb = transaction.objectStore("pendingTransactions");
   const all = sb.getAll();
 
   all.onsuccess = () => {
-    db.close();
     for (let i = 0; i < all.result.length; i++) {
-      let results = [];
-      results.push({
-        name: all.result[i].name,
-        value: all.result[i].value,
-        date: all.result[i].date,
-      });
-    }
-    fetch("/api/transaction/bulk", {
-      method: "POST",
-      headers: {
-        Accept: "application/json, text/plain, */*",
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(results),
-    })
-      .then((res) => {
-        return res.json();
+      fetch("/api/transaction/bulk", {
+        method: "POST",
+        headers: {
+          Accept: "application/json, text/plain, */*",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(results),
       })
-      .then(() => {
-        let transaction = db.transaction("pendingTransactions", "readwrite");
-        let sb = transaction.objectStore("pendingTransactions");
-        sb.clear();
-      });
-  };
-  let req = indexedDB.deleteDatabase("transactions");
-  req.onsuccess = function () {
-    console.log("Successfuly deleted the database");
+        .then((res) => {
+          return res.json();
+        })
+        .then(() => {
+          const transaction = db.transaction(
+            "pendingTransactions",
+            "readwrite"
+          );
+          const sb = transaction.objectStore("pendingTransactions");
+          sb.clear();
+        });
+    }
   };
 }
 

@@ -22,7 +22,7 @@ self.addEventListener("install", function (e) {
 });
 
 self.addEventListener("fetch", function (e) {
-  if (e.request.url.inlcludes("/api/")) {
+  if (e.request.url.includes("/api/")) {
     e.respondWith(
       caches
         .open(DATA_CACHE_NAME)
